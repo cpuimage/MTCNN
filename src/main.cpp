@@ -178,5 +178,6 @@ int main(int argc, char **argv) {
 	saveImage("_done.jpg", Width, Height, Channels, inputImage);
 	free(inputImage);
 	getchar();
+    printf("press any key to exit. \n");
 	return 0;
 }
