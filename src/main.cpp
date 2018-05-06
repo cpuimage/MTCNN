@@ -136,6 +136,76 @@ void drawRectangle(unsigned char *bits, int width, int depth, int x1, int y1, in
 	drawLine(bits, width, depth, x1, y2, x1, y1, col);
 }
 
+#ifndef MAX
+#define MAX(a, b) (((a) > (b)) ? (a): (b))
+#endif
+#ifndef MIN
+#define MIN(a, b) (((a) > (b)) ? (b): (a))
+#endif
+
+unsigned char ClampToByte(int Value) {
+    return ((Value | ((signed int) (255 - Value) >> 31)) & ~((signed int) Value >> 31));
+}
+
+int Clamp(int Value, int Min, int Max) {
+    if (Value < Min)
+        return Min;
+    else if (Value > Max)
+        return Max;
+    else
+        return Value;
+}
+
+void RemoveRedEyes(unsigned char *input, unsigned char *output, int width, int height, int depth, int CenterX, int CenterY,
+              int Radius) {
+    if (depth < 3) return;
+    if ((input == nullptr) || (output == nullptr)) return;
+    if ((width <= 0) || (height <= 0)) return;
+
+    int Left = Clamp(CenterX - Radius, 0, width);
+    int Top = Clamp(CenterY - Radius, 0, height);
+    int Right = Clamp(CenterX + Radius, 0, width);
+    int Bottom = Clamp(CenterY + Radius, 0, height);
+    int PowRadius = Radius * Radius;
+
+    for (int Y = Top; Y < Bottom; Y++) {
+        unsigned char *in_scanline = input + Y * width * depth + Left * depth;
+        unsigned char *out_scanline = output + Y * width * depth + Left * depth;
+        int OffsetY = Y - CenterY;
+        for (int X = Left; X < Right; X++) {
+            int OffsetX = X - CenterX;
+            int dis = OffsetX * OffsetX + OffsetY * OffsetY;
+            if (dis <= PowRadius) {
+                float bluf = 0;
+                int Red = in_scanline[0];
+                int Green = in_scanline[1];
+                int Blue = in_scanline[2];
+                int nrv = Blue + Green;
+                if (nrv < 1) nrv = 1;
+                if (Green > 1)
+					bluf = (float) Blue / Green;
+                else
+                    bluf = (float) Blue;
+                bluf = MAX(0.5f, MIN(1.5f, sqrt(bluf)));
+                float redq = (float) Red / nrv * bluf;
+                if (redq > 0.7f) {
+                    float powr = 1.775f - (redq * 0.75f +
+                                           0.25f);
+                    if (powr < 0) powr = 0;
+                    powr = powr * powr;
+                    float powb = 0.5f + powr * 0.5f;
+                    float powg = 0.75f + powr * 0.25f;
+                    out_scanline[0] = ClampToByte(powr * Red + 0.5f);
+                    out_scanline[1] = ClampToByte(powg * Green + 0.5f);
+                    out_scanline[2] = ClampToByte(powb * Blue + 0.5f);
+                }
+            }
+            in_scanline += depth;
+            out_scanline += depth;
+        }
+    }
+}
+
 int main(int argc, char **argv) {
 	printf("mtcnn face detection\n");
 	printf("blog:http://cpuimage.cnblogs.com/\n");
@@ -164,20 +234,34 @@ int main(int argc, char **argv) {
 	printf("time: %d ms.\n ", (int)(nDetectTime * 1000));
 	int num_box = finalBbox.size();
 	printf("face num: %u \n", num_box);
-	for (int i = 0; i < num_box; i++) {
-		const uint8_t red[3] = { 255, 0, 0 };
-		drawRectangle(inputImage, Width, Channels, finalBbox[i].x1, finalBbox[i].y1,
-			finalBbox[i].x2,
-			finalBbox[i].y2, red);
-		const uint8_t blue[3] = { 0, 0, 255 };
-		for (int num = 0; num < 5; num++) {
-			drawPoint(inputImage, Width, Channels, (int)(finalBbox[i].ppoint[num] + 0.5f),
-				(int)(finalBbox[i].ppoint[num + 5] + 0.5f), blue);
-		}
-	}
-	saveImage("_done.jpg", Width, Height, Channels, inputImage);
-	free(inputImage);
+    bool draw_face_feat = false;
+    for (int i = 0; i < num_box; i++) {
+        if (draw_face_feat) {
+            const uint8_t red[3] = {255, 0, 0};
+
+            drawRectangle(inputImage, Width, Channels, finalBbox[i].x1, finalBbox[i].y1,
+                          finalBbox[i].x2,
+                          finalBbox[i].y2, red);
+            const uint8_t blue[3] = {0, 0, 255};
+
+            for (int num = 0; num < 5; num++) {
+                drawPoint(inputImage, Width, Channels, (int) (finalBbox[i].ppoint[num] + 0.5f),
+                          (int) (finalBbox[i].ppoint[num + 5] + 0.5f), blue);
+            }
+        }
+        int left_eye_x = (int) (finalBbox[i].ppoint[0] + 0.5f);
+        int left_eye_y = (int) (finalBbox[i].ppoint[5] + 0.5f);
+        int right_eye_x = (int) (finalBbox[i].ppoint[1] + 0.5f);
+        int right_eye_y = (int) (finalBbox[i].ppoint[6] + 0.5f);
+        int dis_eye = (int) sqrtf((right_eye_x - left_eye_x) * (right_eye_x - left_eye_x) +
+                                  (right_eye_y - left_eye_y) * (right_eye_y - left_eye_y));
+        int radius = MAX(1, dis_eye / 9);
+        RemoveRedEyes(inputImage, inputImage, Width, Height, Channels, left_eye_x, left_eye_y, radius);
+        RemoveRedEyes(inputImage, inputImage, Width, Height, Channels, right_eye_x, right_eye_y, radius);
+    }
+    saveImage("_done.jpg", Width, Height, Channels, inputImage);
+    free(inputImage);
     printf("press any key to exit. \n");
-	getchar();
-	return 0;
+    getchar();
+    return 0;
 }
