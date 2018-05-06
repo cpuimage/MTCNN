@@ -15,10 +15,7 @@
 #include "mat.h"
 #include <limits.h>
 #include <algorithm>
-
-#if defined(__ARM_NEON)
-#include <arm_neon.h>
-#endif // __ARM_NEON
+ 
 
 namespace ncnn {
 

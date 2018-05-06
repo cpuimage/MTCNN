@@ -15,9 +15,7 @@
 #if defined(__ARM_NEON)
 #include "softmax_arm.h"
 #include <float.h>
-#include <math.h>
-
-#include <arm_neon.h>
+#include <math.h> 
 #include "neon_mathfun.h"
 
 

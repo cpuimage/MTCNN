@@ -15,7 +15,7 @@
 #include "innerproduct_arm.h"
 
 
-#include <arm_neon.h>
+ 
 
 
 namespace ncnn {

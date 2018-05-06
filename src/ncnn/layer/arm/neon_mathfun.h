@@ -25,8 +25,7 @@
  *  (this is the zlib license)
  */
 
-#if  defined(__ARM_NEON)
-#include <arm_neon.h>
+#if  defined(__ARM_NEON) 
 
 #define c_inv_mant_mask ~0x7f800000u
 #define c_cephes_SQRTHF 0.707106781186547524

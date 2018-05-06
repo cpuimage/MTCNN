@@ -12,8 +12,7 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-#if defined(__ARM_NEON)
-#include <arm_neon.h>
+#if defined(__ARM_NEON) 
 
 
 static void conv7x7s1_neon(const Mat& bottom_blob, Mat& top_blob, const Mat& _kernel, const Mat& _bias)

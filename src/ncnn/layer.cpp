@@ -74,55 +74,61 @@ namespace ncnn {
 	int Layer::forward_inplace(Mat & /*bottom_top_blob*/) const {
 		return -1;
 	}
-#if defined(__SSE__)
-	extern Layer *Convolution_x86_layer_creator();
-#endif
+ 
 #if defined(__ARM_NEON)
-	extern Layer *Convolution_arm_layer_creator();
-#endif
+	extern Layer *Convolution_arm_layer_creator(); 
+	extern Layer *InnerProduct_arm_layer_creator();
+	extern Layer *PReLU_layer_arm_creator();
+	extern Layer *Softmax_layer_arm_creator();
+	extern Layer *Pooling_layer_arm_creator();
+#else
+	extern Layer *Convolution_x86_layer_creator(); 
 	extern Layer *InnerProduct_layer_creator();
-
+	extern Layer *PReLU_layer_creator();
+	extern Layer *Softmax_layer_creator();
 	extern Layer *Pooling_layer_creator();
+#endif
 
+	
 	extern Layer *Input_layer_creator();
 
 	extern Layer *Split_layer_creator();
 
-	extern Layer *PReLU_layer_creator();
-
-	extern Layer *Softmax_layer_creator();
 
 	extern Layer *Dropout_layer_creator();
-
-
+	 
 	static const layer_registry_entry layer_registry[] =
 	{
-#if defined(__SSE__)
-#if NCNN_STRING
-					{"Convolution", Convolution_x86_layer_creator},
-#else
-					{Convolution_x86_layer_creator},
-#endif
-#endif
-
-
 #if defined(__ARM_NEON)
 #if NCNN_STRING
 	{ "Convolution", Convolution_arm_layer_creator },
+	{ "InnerProduct", InnerProduct_arm_layer_creator },
+	{ "Pooling", Pooling_arm_layer_creator },
+	{ "PReLU", PReLU_arm_layer_creator },
+	{ "Softmax", Softmax_arm_layer_creator },
 #else
 	{ Convolution_arm_layer_creator },
+	{ InnerProduct_arm_layer_creator },
+	{ Pooling_arm_layer_creator },
+	{ PReLU_arm_layer_creator },
+	{ Softmax_arm_layer_creator },
 #endif
-#endif
-#if NCNN_STRING
-					{"InnerProduct", InnerProduct_layer_creator},
 #else
-					{InnerProduct_layer_creator},
-#endif
 #if NCNN_STRING
-					{"Pooling", Pooling_layer_creator},
+	{ "Convolution", Convolution_x86_layer_creator },
+	{ "InnerProduct", InnerProduct_layer_creator },
+	{ "Pooling", Pooling_layer_creator },
+	{ "PReLU", PReLU_layer_creator },
+	{ "Softmax", Softmax_layer_creator },
 #else
-					{Pooling_layer_creator},
+	{ Convolution_x86_layer_creator },
+	{ InnerProduct_layer_creator },
+	{ Pooling_layer_creator },
+	{ PReLU_layer_creator },
+	{ Softmax_layer_creator },
 #endif
+#endif
+
 #if NCNN_STRING
 					{"Input", Input_layer_creator},
 #else
@@ -132,17 +138,7 @@ namespace ncnn {
 					{"Split", Split_layer_creator},
 #else
 					{Split_layer_creator},
-#endif
-#if NCNN_STRING
-					{"PReLU", PReLU_layer_creator},
-#else
-					{PReLU_layer_creator},
-#endif
-#if NCNN_STRING
-					{"Softmax", Softmax_layer_creator},
-#else
-					{Softmax_layer_creator},
-#endif
+#endif  
 #if NCNN_STRING
 					{"Dropout", Dropout_layer_creator},
 #else

@@ -18,7 +18,7 @@
 
 #include "convolution.h"
 
-#if defined(__SSE__)
+#if !defined(__ARM_NEON)
 namespace ncnn {
 
     class Convolution_x86 : public Convolution {

@@ -14,16 +14,7 @@
 
 #ifndef NCNN_LAYER_H
 #define NCNN_LAYER_H
-#if defined(__x86_64__) || defined(_M_X64)
-#ifndef __SSE__
-#define __SSE__
-#endif
-#elif defined(__i386) || defined(_M_IX86)
-#define __SSE__
-#else
-#define  __ARM_NEON
-#endif
-
+#include "platform.h" 
 #include <stdio.h>
 #include <string>
 #include <vector>

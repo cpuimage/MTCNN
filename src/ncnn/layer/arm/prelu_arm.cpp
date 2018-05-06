@@ -14,8 +14,7 @@
 
 #if defined(__ARM_NEON)
 #include "prelu_arm.h"
-
-#include <arm_neon.h>
+ 
 
 
 namespace ncnn {

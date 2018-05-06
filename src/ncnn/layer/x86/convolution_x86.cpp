@@ -14,7 +14,7 @@
 
 #include "convolution_x86.h"
 
-#if defined(__SSE__)
+#if !defined(__ARM_NEON)
 
 namespace ncnn {
 

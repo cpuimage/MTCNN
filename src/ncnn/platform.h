@@ -15,6 +15,18 @@
 #ifndef NCNN_PLATFORM_H
 #define NCNN_PLATFORM_H
 
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
+#ifdef __ARM_NEON
+#undef __ARM_NEON 
+#endif
+#ifdef _MSC_VER
+#define _OPENMP
+#pragma comment(lib, "vcomp.lib")
+#endif 
+#else
+#define  __ARM_NEON
+#include <arm_neon.h>
+#endif
 #define NCNN_STDIO 1
 #define NCNN_STRING 1
 

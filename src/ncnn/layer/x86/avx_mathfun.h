@@ -28,8 +28,8 @@
 
   (this is the zlib license)
 */
-
-#if defined(__SSE__)
+ 
+#if !defined(__ARM_NEON))
 
 #include <immintrin.h>
 
