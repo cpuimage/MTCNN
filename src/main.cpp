@@ -206,6 +206,215 @@ void RemoveRedEyes(unsigned char *input, unsigned char *output, int width, int h
     }
 }
 
+void RotateBilinear(unsigned char *sourceData, int width, int height, int Channels, int RowBytes,
+                    unsigned char *destinationData, int newWidth, int newHeight, float angle, bool keepSize = true,
+                    int fillColorR = 255, int fillColorG = 255, int fillColorB = 255) {
+    if (sourceData == NULL || destinationData == NULL) return;
+
+    float oldXradius = (float) (width - 1) / 2;
+    float oldYradius = (float) (height - 1) / 2;
+
+    float newXradius = (float) (newWidth - 1) / 2;
+    float newYradius = (float) (newHeight - 1) / 2;
+
+    double MPI = 3.14159265358979323846;
+    double angleRad = -angle * MPI / 180.0;
+    float angleCos = (float) cos(angleRad);
+    float angleSin = (float) sin(angleRad);
+
+    int srcStride = RowBytes;
+    int dstOffset = newWidth * Channels - ((Channels == 1) ? newWidth : newWidth * Channels);
+
+    unsigned char fillR = fillColorR;
+    unsigned char fillG = fillColorG;
+    unsigned char fillB = fillColorB;
+
+    unsigned char *src = (unsigned char *) sourceData;
+    unsigned char *dst = (unsigned char *) destinationData;
+
+    int ymax = height - 1;
+    int xmax = width - 1;
+    if (Channels == 1) {
+        float cy = -newYradius;
+        for (int y = 0; y < newHeight; y++) {
+            float tx = angleSin * cy + oldXradius;
+            float ty = angleCos * cy + oldYradius;
+
+            float cx = -newXradius;
+            for (int x = 0; x < newWidth; x++, dst++) {
+                float ox = tx + angleCos * cx;
+                float oy = ty - angleSin * cx;
+
+                int ox1 = (int) ox;
+                int oy1 = (int) oy;
+
+                if ((ox1 < 0) || (oy1 < 0) || (ox1 >= width) || (oy1 >= height)) {
+                    *dst = fillG;
+                } else {
+                    int ox2 = (ox1 == xmax) ? ox1 : ox1 + 1;
+                    int oy2 = (oy1 == ymax) ? oy1 : oy1 + 1;
+                    float dx1 = 0;
+                    if ((dx1 = ox - (float) ox1) < 0)
+                        dx1 = 0;
+                    float dx2 = 1.0f - dx1;
+                    float dy1 = 0;
+                    if ((dy1 = oy - (float) oy1) < 0)
+                        dy1 = 0;
+                    float dy2 = 1.0f - dy1;
+
+                    unsigned char *p1 = src + oy1 * srcStride;
+                    unsigned char *p2 = src + oy2 * srcStride;
+
+                    *dst = (unsigned char) (dy2 * (dx2 * p1[ox1] + dx1 * p1[ox2]) +
+                                            dy1 * (dx2 * p2[ox1] + dx1 * p2[ox2]));
+                }
+                cx++;
+            }
+            cy++;
+            dst += dstOffset;
+        }
+    } else if (Channels == 3) {
+        float cy = -newYradius;
+        for (int y = 0; y < newHeight; y++) {
+            float tx = angleSin * cy + oldXradius;
+            float ty = angleCos * cy + oldYradius;
+
+            float cx = -newXradius;
+            for (int x = 0; x < newWidth; x++, dst += Channels) {
+                float ox = tx + angleCos * cx;
+                float oy = ty - angleSin * cx;
+
+                int ox1 = (int) ox;
+                int oy1 = (int) oy;
+
+                if ((ox1 < 0) || (oy1 < 0) || (ox1 >= width) || (oy1 >= height)) {
+                    dst[0] = fillR;
+                    dst[1] = fillG;
+                    dst[2] = fillB;
+                } else {
+                    int ox2 = (ox1 == xmax) ? ox1 : ox1 + 1;
+                    int oy2 = (oy1 == ymax) ? oy1 : oy1 + 1;
+
+                    float dx1 = 0;
+                    if ((dx1 = ox - (float) ox1) < 0)
+                        dx1 = 0;
+                    float dx2 = 1.0f - dx1;
+                    float dy1 = 0;
+                    if ((dy1 = oy - (float) oy1) < 0)
+                        dy1 = 0;
+                    float dy2 = 1.0f - dy1;
+
+                    unsigned char *p1 = src + oy1 * srcStride;
+                    unsigned char *p2 = p1;
+                    p1 += ox1 * Channels;
+                    p2 += ox2 * Channels;
+
+                    unsigned char *p3 = src + oy2 * srcStride;
+                    unsigned char *p4 = p3;
+                    p3 += ox1 * Channels;
+                    p4 += ox2 * Channels;
+
+                    dst[0] = (unsigned char) (
+                            dy2 * (dx2 * p1[0] + dx1 * p2[0]) +
+                            dy1 * (dx2 * p3[0] + dx1 * p4[0]));
+
+                    dst[1] = (unsigned char) (
+                            dy2 * (dx2 * p1[1] + dx1 * p2[1]) +
+                            dy1 * (dx2 * p3[1] + dx1 * p4[1]));
+
+                    dst[2] = (unsigned char) (
+                            dy2 * (dx2 * p1[2] + dx1 * p2[2]) +
+                            dy1 * (dx2 * p3[2] + dx1 * p4[2]));
+                }
+                cx++;
+            }
+            cy++;
+            dst += dstOffset;
+        }
+    } else if (Channels == 4) {
+        float cy = -newYradius;
+        for (int y = 0; y < newHeight; y++) {
+            float tx = angleSin * cy + oldXradius;
+            float ty = angleCos * cy + oldYradius;
+
+            float cx = -newXradius;
+            for (int x = 0; x < newWidth; x++, dst += Channels) {
+                float ox = tx + angleCos * cx;
+                float oy = ty - angleSin * cx;
+
+                int ox1 = (int) ox;
+                int oy1 = (int) oy;
+
+                if ((ox1 < 0) || (oy1 < 0) || (ox1 >= width) || (oy1 >= height)) {
+                    dst[0] = fillR;
+                    dst[1] = fillG;
+                    dst[2] = fillB;
+                    dst[3] = 255;
+                } else {
+                    int ox2 = (ox1 == xmax) ? ox1 : ox1 + 1;
+                    int oy2 = (oy1 == ymax) ? oy1 : oy1 + 1;
+
+                    float dx1 = 0;
+                    if ((dx1 = ox - (float) ox1) < 0)
+                        dx1 = 0;
+                    float dx2 = 1.0f - dx1;
+                    float dy1 = 0;
+                    if ((dy1 = oy - (float) oy1) < 0)
+                        dy1 = 0;
+                    float dy2 = 1.0f - dy1;
+
+                    unsigned char *p1 = src + oy1 * srcStride;
+                    unsigned char *p2 = p1;
+                    p1 += ox1 * Channels;
+                    p2 += ox2 * Channels;
+
+                    unsigned char *p3 = src + oy2 * srcStride;
+                    unsigned char *p4 = p3;
+                    p3 += ox1 * Channels;
+                    p4 += ox2 * Channels;
+
+                    dst[0] = (unsigned char) (
+                            dy2 * (dx2 * p1[0] + dx1 * p2[0]) +
+                            dy1 * (dx2 * p3[0] + dx1 * p4[0]));
+
+                    dst[1] = (unsigned char) (
+                            dy2 * (dx2 * p1[1] + dx1 * p2[1]) +
+                            dy1 * (dx2 * p3[1] + dx1 * p4[1]));
+
+                    dst[2] = (unsigned char) (
+                            dy2 * (dx2 * p1[2] + dx1 * p2[2]) +
+                            dy1 * (dx2 * p3[2] + dx1 * p4[2]));
+                    dst[3] = 255;
+                }
+                cx++;
+            }
+            cy++;
+            dst += dstOffset;
+        }
+    }
+}
+
+void facialPoseCorrection(unsigned char *inputImage, int Width, int Height, int Channels, int left_eye_x,
+                          int left_eye_y,
+                          int right_eye_x, int right_eye_y) {
+    float diffEyeX = right_eye_x - left_eye_x;
+    float diffEyeY = right_eye_y - left_eye_y;
+
+    float fAngle;
+    float M_PI = 3.1415926535897932384626433832795f;
+    if (fabs(diffEyeX) < 0.0000001f)
+        fAngle = 0.f;
+    else
+        fAngle = atanf(diffEyeY / diffEyeX) * 180.0f / M_PI;
+    size_t numberOfPixels = Width * Height * Channels * sizeof(unsigned char);
+    unsigned char *outputImage = (unsigned char *) malloc(numberOfPixels);
+    if (outputImage != nullptr) {
+        RotateBilinear(inputImage, Width, Height, Channels, Width * Channels, outputImage, Width, Height, fAngle);
+        memcpy(inputImage, outputImage, numberOfPixels);
+        free(outputImage);
+    }
+}
+
 int main(int argc, char **argv) {
 	printf("mtcnn face detection\n");
 	printf("blog:http://cpuimage.cnblogs.com/\n");
@@ -235,6 +444,10 @@ int main(int argc, char **argv) {
 	int num_box = finalBbox.size();
 	printf("face num: %u \n", num_box);
     bool draw_face_feat = false;
+    int left_eye_x = 0;
+    int left_eye_y = 0;
+    int right_eye_x = 0;
+    int right_eye_y = 0;
     for (int i = 0; i < num_box; i++) {
         if (draw_face_feat) {
             const uint8_t red[3] = {255, 0, 0};
@@ -249,16 +462,17 @@ int main(int argc, char **argv) {
                           (int) (finalBbox[i].ppoint[num + 5] + 0.5f), blue);
             }
         }
-        int left_eye_x = (int) (finalBbox[i].ppoint[0] + 0.5f);
-        int left_eye_y = (int) (finalBbox[i].ppoint[5] + 0.5f);
-        int right_eye_x = (int) (finalBbox[i].ppoint[1] + 0.5f);
-        int right_eye_y = (int) (finalBbox[i].ppoint[6] + 0.5f);
+        left_eye_x = (int) (finalBbox[i].ppoint[0] + 0.5f);
+        left_eye_y = (int) (finalBbox[i].ppoint[5] + 0.5f);
+        right_eye_x = (int) (finalBbox[i].ppoint[1] + 0.5f);
+        right_eye_y = (int) (finalBbox[i].ppoint[6] + 0.5f);
         int dis_eye = (int) sqrtf((right_eye_x - left_eye_x) * (right_eye_x - left_eye_x) +
                                   (right_eye_y - left_eye_y) * (right_eye_y - left_eye_y));
         int radius = MAX(1, dis_eye / 9);
         RemoveRedEyes(inputImage, inputImage, Width, Height, Channels, left_eye_x, left_eye_y, radius);
         RemoveRedEyes(inputImage, inputImage, Width, Height, Channels, right_eye_x, right_eye_y, radius);
     }
+    facialPoseCorrection(inputImage, Width, Height, Channels, left_eye_x, left_eye_y, right_eye_x, right_eye_y);
     saveImage("_done.jpg", Width, Height, Channels, inputImage);
     free(inputImage);
     printf("press any key to exit. \n");
