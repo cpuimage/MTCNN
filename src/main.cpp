@@ -23,6 +23,19 @@
 #include <stdint.h>
 #include "timing.h"
 
+#ifndef _MAX_DRIVE
+#define _MAX_DRIVE 3
+#endif
+#ifndef _MAX_FNAME
+#define _MAX_FNAME 256
+#endif
+#ifndef _MAX_EXT
+#define _MAX_EXT 256
+#endif
+#ifndef _MAX_DIR
+#define _MAX_DIR 256
+#endif
+
 char saveFile[1024];
 
 unsigned char *loadImage(const char *filename, int *Width, int *Height, int *Channels) {
@@ -401,11 +414,11 @@ void facialPoseCorrection(unsigned char *inputImage, int Width, int Height, int 
     float diffEyeY = right_eye_y - left_eye_y;
 
     float fAngle;
-    float M_PI = 3.1415926535897932384626433832795f;
+    float pi = 3.1415926535897932384626433832795f;
     if (fabs(diffEyeX) < 0.0000001f)
         fAngle = 0.f;
     else
-        fAngle = atanf(diffEyeY / diffEyeX) * 180.0f / M_PI;
+        fAngle = atanf(diffEyeY / diffEyeX) * 180.0f / pi;
     size_t numberOfPixels = Width * Height * Channels * sizeof(unsigned char);
     unsigned char *outputImage = (unsigned char *) malloc(numberOfPixels);
     if (outputImage != nullptr) {
