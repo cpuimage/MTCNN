@@ -78,9 +78,9 @@ namespace ncnn {
 #if defined(__ARM_NEON)
 	extern Layer *Convolution_arm_layer_creator(); 
 	extern Layer *InnerProduct_arm_layer_creator();
-	extern Layer *PReLU_layer_arm_creator();
-	extern Layer *Softmax_layer_arm_creator();
-	extern Layer *Pooling_layer_arm_creator();
+	extern Layer *PReLU_arm_layer_creator();
+	extern Layer *Softmax_arm_layer_creator();
+	extern Layer *Pooling_arm_layer_creator();
 #else
 	extern Layer *Convolution_x86_layer_creator(); 
 	extern Layer *InnerProduct_layer_creator();
