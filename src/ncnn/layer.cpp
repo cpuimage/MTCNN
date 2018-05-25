@@ -103,9 +103,9 @@ namespace ncnn {
 #if NCNN_STRING
 	{ "Convolution", Convolution_arm_layer_creator },
 	{ "InnerProduct", InnerProduct_arm_layer_creator },
-	{ "Pooling", Pooling_arm_layer_creator },
-	{ "PReLU", PReLU_arm_layer_creator },
-	{ "Softmax", Softmax_arm_layer_creator },
+	{ "Pooling", Pooling_layer_arm_creator },
+	{ "PReLU", PReLU_layer_arm_creator },
+	{ "Softmax", Softmax_layer_arm_creator },
 #else
 	{ Convolution_arm_layer_creator },
 	{ InnerProduct_arm_layer_creator },
