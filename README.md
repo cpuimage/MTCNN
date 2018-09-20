@@ -1,5 +1,5 @@
 # MTCNN
-MTCNN face detection implementation base NCNN
+MTCNN face detection implementation base on NCNN
 
 ![image](https://github.com/cpuimage/MTCNN/blob/master/result.jpg)
 
