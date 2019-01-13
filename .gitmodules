@@ -1,0 +1,3 @@
+[submodule "ncnn"]
+	path = ncnn
+	url = https://github.com/Tencent/ncnn
