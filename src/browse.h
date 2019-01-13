@@ -8,7 +8,7 @@
 #if _WIN32
 
 #include <windows.h>
-
+#include <shellapi.h>
 #pragma comment(lib,"shell32.lib")
 
 static void browse(const char *url)
